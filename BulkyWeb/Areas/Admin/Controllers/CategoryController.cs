@@ -1,4 +1,5 @@
 ﻿using BulkyBook.DataAccess.Repository.IRepository;
+using BulkyBook.DataAccess.Services;
 using BulkyBook.Models;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -12,17 +13,19 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
     public class CategoryController : Controller
     {
         // Instance of Dependency Injection
-        private readonly IUnitOfWork _unitOfWork;
-        public CategoryController(IUnitOfWork unitOfWork)
+        //private readonly IUnitOfWork _unitOfWork;
+        private readonly ICategoryService _categoryService;
+        public CategoryController(/*IUnitOfWork unitOfWork*/  ICategoryService categoryService)
         {
-            _unitOfWork = unitOfWork;
+            //_unitOfWork = unitOfWork;
+            _categoryService = categoryService; 
         }
 
         #region Display Category
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             // Retrieve list of Category
-            List<CategoryModel> categoryList = _unitOfWork.Category.GetAll().ToList();
+            List<CategoryModel> categoryList = await _categoryService.GetCategories();
             return View(categoryList);
         }
         #endregion
@@ -36,13 +39,13 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCategory(CategoryModel category)
+        public async Task<IActionResult> CreateCategory(CategoryModel category)
         {
             // If model is bound then create a category 
             if (ModelState.IsValid)
             {
-                _unitOfWork.Category.Add(category);
-                _unitOfWork.Save();
+                await _categoryService.InsertCategory(category);
+                await _categoryService.SaveCategory();
                 TempData["success"] = "Category Created Successfully";
                 return RedirectToAction("Index");
             }
@@ -51,7 +54,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         #endregion
 
         #region Edit Category
-        public IActionResult EditCategory(int? categoryID)
+        public async Task<IActionResult> EditCategory(int? categoryID)
         {
             // CategoryID Validation
             if (categoryID == null || categoryID < 0)
@@ -60,7 +63,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
             }
 
             // Use Repository Get method
-            CategoryModel? categoryFromDb = _unitOfWork.Category.Get(u => u.CategoryID == categoryID);
+            CategoryModel? categoryFromDb = await _categoryService.GetCategory(categoryID);
             
             // Example of FirstOrDefault Method
             // CategoryModel? categoryFromDb1 = _dbCategory.Categories.FirstOrDefault(u=>u.CategoryID == categoryID);
@@ -77,13 +80,13 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult EditCategory(CategoryModel categoryObj)
+        public async Task<IActionResult> EditCategory(CategoryModel categoryObj)
         {
             // If model is bound then edit a category
             if (ModelState.IsValid)
             {
-                _unitOfWork.Category.Update(categoryObj);
-                _unitOfWork.Save();
+                await _categoryService.UpdateCategory(categoryObj);
+                await _categoryService.SaveCategory();
                 TempData["success"] = "Category Updated Successfully";
                 return RedirectToAction("Index");
             }
@@ -92,7 +95,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         #endregion
 
         #region Delete Category
-        public IActionResult DeleteCategory(int? categoryID)
+        public async Task<IActionResult> DeleteCategory(int? categoryID)
         {
             // Check CategoryID Validations
             if (categoryID == null || categoryID < 0)
@@ -101,7 +104,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
             }
 
             // Retrieve Category using Get Method
-            CategoryModel? categoryFromDb = _unitOfWork.Category.Get(u => u.CategoryID == categoryID);
+            CategoryModel? categoryFromDb = await _categoryService.GetCategory(categoryID);
 
             if (categoryFromDb == null)
             {
@@ -113,15 +116,15 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 
         // Define custom ActionName to maintain naming in View
         [HttpPost, ActionName("DeleteCategory")]
-        public IActionResult DeleteCategoryPOST(int? categoryID)
+        public async Task<IActionResult> DeleteCategoryPOST(int? categoryID)
         {
-            CategoryModel? categoryObj = _unitOfWork.Category.Get(u => u.CategoryID == categoryID);
+            CategoryModel? categoryObj = await _categoryService.GetCategory(categoryID);
             if (categoryObj == null)
             {
                 return NotFound();
             }
-            _unitOfWork.Category.Remove(categoryObj);
-            _unitOfWork.Save();
+            await _categoryService.DeleteCategory(categoryObj);
+            await _categoryService.SaveCategory();
             TempData["success"] = "Category Deleted Successfully";
             return RedirectToAction("Index");
         }

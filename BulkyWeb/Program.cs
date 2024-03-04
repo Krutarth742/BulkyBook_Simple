@@ -1,6 +1,8 @@
 using BulkyBook.DataAccess.Data;
+using BulkyBook.DataAccess.Implementation;
 using BulkyBook.DataAccess.Repository;
 using BulkyBook.DataAccess.Repository.IRepository;
+using BulkyBook.DataAccess.Services;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -49,7 +51,11 @@ builder.Services.AddRazorPages();
 
 // AddScoped service Lifetime
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();   
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+// Simple Method - Services & Implementation
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, BulkyBook.DataAccess.Implementation.ProductService>();
 
 var app = builder.Build();
 

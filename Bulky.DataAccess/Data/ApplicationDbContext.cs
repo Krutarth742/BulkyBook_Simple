@@ -25,6 +25,20 @@ namespace BulkyBook.DataAccess.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            #region Category Table Mapping
+            modelBuilder.Entity<CategoryModel>(entity =>
+            {
+                entity.HasKey(e => e.CategoryID);
+
+                entity.ToTable("Categories");
+
+                entity.Property(e => e.CategoryID).HasColumnName("CategoryID");
+                entity.Property(e => e.CategoryName).HasMaxLength(int.MaxValue);
+                entity.Property(e => e.CategoryOrder).HasColumnName("CategoryOrder");
+
+            });
+            #endregion
+
             #region Data of Category Table
             modelBuilder.Entity<CategoryModel>().HasData(
                 new CategoryModel { CategoryID=1, CategoryName="Action", CategoryOrder=1 },
